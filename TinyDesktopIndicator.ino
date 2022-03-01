@@ -1,12 +1,12 @@
 /* *****************************************************************
  * 
- * SmallDesktopIndicator-OLED
+ * TinyDesktopIndicator-OLED
  *    小型桌面显示器OLED版本
  * 
  * 原  作  者：Misaka & 微车游
  * 修      改：JimHan
- * 最后更改日期：2021.12.24
- * 更 新 日 志：V1.0 修改显示为OLED，删除微信配网
+ * 最后更改日期：2022.03.01
+ * 更 新 日 志：V1.0 修改显示为OLED，删除微信配网，关闭DHT传感器，UI大改以适应0.96'OLED
  * 
  * 引 脚 分 配：
  *              SCL   GPIO14
@@ -14,7 +14,7 @@
  *             
  * 
  * *****************************************************************/
-#define Version  "SDI-OLED V1.0.1"
+#define Version  "TDI-OLED V1.0.5"
 /* *****************************************************************
  *  库文件、头文件
  * *****************************************************************/
@@ -241,9 +241,9 @@ void loading(byte delayTime)//绘制进度条
   u8g2.drawFrame(10, 25, 108, 15);   //空心直角矩形
   u8g2.drawBox(12, 27, loadNum, 11); //实心直角矩形
   u8g2.setFont(u8g2_font_wqy13_t_gb2312);
-  u8g2.drawUTF8(25,18, "连接到WiFi..."); 
+  u8g2.drawUTF8(28,18, "连接到WiFi..."); 
   u8g2.setFont(u8g2_font_mozart_nbp_tf);
-  u8g2.drawUTF8(40,50, Version); //显示版本号信息
+  u8g2.drawUTF8(37,50, Version); //显示版本号信息
   u8g2.sendBuffer();          // transfer internal memory to the display
 
   // clk.drawRoundRect(0,0,200,16,8,0xFFFF);       //空心圆角矩形
@@ -634,11 +634,11 @@ void Web_sever_Win()
 
   u8g2.setFont(u8g2_font_missingplanet_tr);
   u8g2.drawUTF8(20,20, "IP:"); 
-  u8g2.drawUTF8(45,20, WiFi.localIP().toString().c_str()); 
+  u8g2.drawUTF8(40,20, WiFi.localIP().toString().c_str()); 
   u8g2.setFont(u8g2_font_DigitalDiscoThin_tu);
-  u8g2.drawUTF8(35,40, "CONSOLE"); //显示版本号信息
+  u8g2.drawUTF8(38,40, "CONSOLE"); //显示版本号信息
   u8g2.setFont(u8g2_font_missingplanet_tr);
-  u8g2.drawUTF8(30,60, "http://sd3.local"); //显示版本号信息
+  u8g2.drawUTF8(27,60, "http://sd3.local"); //显示版本号信息
   u8g2.sendBuffer();          // transfer internal memory to the display
 
   // clk.setColorDepth(8);
@@ -666,7 +666,7 @@ void Web_win()
   u8g2.clearBuffer();          // clear the internal memory
   u8g2.setFont(u8g2_font_wqy14_t_gb2312);
   u8g2.drawUTF8(23,16, "网络连接失败"); 
-  u8g2.drawUTF8(1,42, "请连接热点进行配置");
+  u8g2.drawUTF8(1,37, "请连接热点进行配置");
   u8g2.setFont(u8g2_font_missingplanet_tr);
   u8g2.drawUTF8(12,60, "SSID: AutoConnectAP"); //显示版本号信息
   u8g2.sendBuffer();          // transfer internal memory to the display
@@ -898,6 +898,7 @@ void setup()
       //使能web配网
       Web_win();
       Webconfig();
+      u8g2.clearBuffer();          // clear the internal memory
       break;
     }
   }
@@ -1165,8 +1166,8 @@ void weaterData(String *cityDZ,String *dataSK,String *dataFC)
   
   //湿度
   u8g2.setFont(u8g2_font_wqy13_t_gb2312);
-  u8g2.drawUTF8(90,63, sk["SD"].as<String>().c_str()); 
-  u8g2.drawUTF8(60,63, "湿度"); 
+  u8g2.drawUTF8(95,63, sk["SD"].as<String>().c_str()); 
+  u8g2.drawUTF8(65,63, "湿度"); 
   // clk.createSprite(58, 24); 
   // clk.fillSprite(bgColor);
   // clk.setTextDatum(CC_DATUM);
@@ -1220,7 +1221,7 @@ void weaterData(String *cityDZ,String *dataSK,String *dataFC)
     aqiTxt = "良";
   }
   u8g2.setFont(u8g2_font_wqy13_t_gb2312);
-  u8g2.drawUTF8(95,43, aqiTxt.c_str()); 
+  //u8g2.drawUTF8(95,43, aqiTxt.c_str());  删除多余的城市空气质量单独显示 
   // clk.createSprite(56, 24); 
   // clk.fillSprite(bgColor);
   // clk.fillRoundRect(0,0,50,24,4,pm25BgColor);
@@ -1307,18 +1308,18 @@ void digitalClockDisplay(int reflash_en)
   int timey=82;
   if(hour()!=Hour_sign || reflash_en == 1)//时钟刷新
   {
-    u8g2.setFont(u8g2_font_VCR_OSD_tu);
-    u8g2.drawStr(5,40,String(hour()/10).c_str());
-    u8g2.drawStr(18,40,String(hour()%10).c_str());
+    u8g2.setFont(u8g2_font_freedoomr25_tn);
+    u8g2.drawStr(5,45,String(hour()/10).c_str());
+    u8g2.drawStr(30,45,String(hour()%10).c_str());
     // dig.printfW3660(20,timey,hour()/10);
     // dig.printfW3660(60,timey,hour()%10);
     Hour_sign = hour();
   }
   if(minute()!=Minute_sign  || reflash_en == 1)//分钟刷新
   {
-    u8g2.setFont(u8g2_font_VCR_OSD_tu);
-    u8g2.drawStr(35,40,String(minute()/10).c_str());
-    u8g2.drawStr(48,40,String(minute()&10).c_str());
+    u8g2.setFont(u8g2_font_freedoomr25_tn);
+    u8g2.drawStr(60,45,String(minute()/10).c_str());
+    u8g2.drawStr(85,45,String(minute()&10).c_str());
     // dig.printfO3660(101,timey,minute()/10);
     // dig.printfO3660(141,timey,minute()%10);
     Minute_sign = minute();
@@ -1326,7 +1327,7 @@ void digitalClockDisplay(int reflash_en)
   if(second()!=Second_sign  || reflash_en == 1)//秒钟刷新
   {
     u8g2.setFont(u8g2_font_VCR_OSD_tu);
-    u8g2.drawStr(65,40,String(second()).c_str());
+    //u8g2.drawStr(90,40,String(second()).c_str()); 不再显示秒，为日期留空位
     // dig.printfW1830(182,timey+30,second()/10);
     // dig.printfW1830(202,timey+30,second()%10);
     Second_sign = second();
@@ -1334,6 +1335,9 @@ void digitalClockDisplay(int reflash_en)
   
   if(reflash_en == 1) reflash_en = 0;
   /***日期****/
+  u8g2.setFont(u8g2_font_wqy13_t_gb2312);
+  u8g2.drawStr(90,45,String(week()).c_str());
+  u8g2.drawStr(90,35,String(monthDay()).c_str());
   // clk.setColorDepth(8);
   // clk.loadFont(ZdyLwFont_20);
   
