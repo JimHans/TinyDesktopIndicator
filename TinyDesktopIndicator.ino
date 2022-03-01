@@ -7,6 +7,7 @@
  * 修      改：JimHan
  * 最后更改日期：2022.03.01
  * 更 新 日 志：V1.0 修改显示为OLED，删除微信配网，关闭DHT传感器，UI大改以适应0.96'OLED
+ *             V1.1 更新了时间字体，优化了排版，更新网页配置面板为SDI新版外观。解决了时间字体重叠问题。
  * 
  * 引 脚 分 配：
  *              SCL   GPIO14
@@ -14,7 +15,7 @@
  *             
  * 
  * *****************************************************************/
-#define Version  "TDI-OLED V1.0.5"
+#define Version  "TDI-OLED V1.1.2"
 /* *****************************************************************
  *  库文件、头文件
  * *****************************************************************/
@@ -549,22 +550,22 @@ void handleconfig()
   }
 
   //网页界面代码段
-  String content = "<html><style>html,body{ background: #1aceff; color: #fff; font-size: 10px;}</style>";
-        content += "<body><form action='/' method='POST'><br><div>SDD Web Config</div><br>";
-        content += "City Code:<br><input type='text' name='web_ccode' placeholder='city code'><br>";
-        content += "<br>Back Light(1-100):(default:50)<br><input type='text' name='web_bl' placeholder='10'><br>";
-        content += "<br>Weather Update Time:(default:10)<br><input type='text' name='web_upwe_t' placeholder='10'><br>";
+  String content = "<html><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><style>html,body{ background: #2F3840; color: #fff; font-size: 20px; text-align:center;}</style>";
+        content += "<body><form action='/' method='POST'><br><h2>SDI 网络控制台</h2><br>";
+        content += "城市代码:<br><input type='text' name='web_ccode' placeholder='请输入代码，输入0为自动'><br>";
+        content += "<br>屏幕背光亮度(1-100):(默认:50%)<br><input type='text' name='web_bl' placeholder='10'><br>";
+        content += "<br>天气刷新时间:(默认10min)<br><input type='text' name='web_upwe_t' placeholder='10'><br>";
         #if DHT_EN
         content += "<br>DHT Sensor Enable  <input type='radio' name='web_DHT11_en' value='0'checked> DIS \
                                           <input type='radio' name='web_DHT11_en' value='1'> EN<br>";
         #endif
-        content += "<br>LCD Rotation<br>\
-                    <input type='radio' name='web_set_rotation' value='0' checked> USB Down<br>\
-                    <input type='radio' name='web_set_rotation' value='1'> USB Right<br>\
-                    <input type='radio' name='web_set_rotation' value='2'> USB Up<br>\
-                    <input type='radio' name='web_set_rotation' value='3'> USB Left<br>";
-        content += "<br><div><input type='submit' name='Save' value='Save'></form></div>" + msg + "<br>";
-        content += "By WCY<br>";
+        content += "<br>屏幕旋转方向<br>\
+                    <input type='radio' name='web_set_rotation' value='0' checked> USB 向下<br>\
+                    <input type='radio' name='web_set_rotation' value='1'> USB 向右<br>\
+                    <input type='radio' name='web_set_rotation' value='2'> USB 向上<br>\
+                    <input type='radio' name='web_set_rotation' value='3'> USB 向左<br>";
+        content += "<br><div><input type='submit' name='保存设置' value='Save'></form></div>" + msg + "<br>";
+        content += "By WCY Modified By JimHan<br>";
         content += "</body></html>";
   server.send(200, "text/html", content);
 }
@@ -933,7 +934,7 @@ void setup()
   Udp.begin(localPort);
   Serial.println("等待同步...");
   setSyncProvider(getNtpTime);
-  setSyncInterval(300);
+  setSyncInterval(400);
 
   // TJpgDec.setJpgScale(1);
   // TJpgDec.setSwapBytes(true);
@@ -1309,8 +1310,11 @@ void digitalClockDisplay(int reflash_en)
   if(hour()!=Hour_sign || reflash_en == 1)//时钟刷新
   {
     u8g2.setFont(u8g2_font_freedoomr25_tn);
+    u8g2.setDrawColor(0);   // clear the scrolling area
+    u8g2.drawBox(5, 20, 40, 25);
+    u8g2.setDrawColor(1);   // set the color for the text
     u8g2.drawStr(5,45,String(hour()/10).c_str());
-    u8g2.drawStr(30,45,String(hour()%10).c_str());
+    u8g2.drawStr(25,45,String(hour()%10).c_str());
     // dig.printfW3660(20,timey,hour()/10);
     // dig.printfW3660(60,timey,hour()%10);
     Hour_sign = hour();
@@ -1318,16 +1322,19 @@ void digitalClockDisplay(int reflash_en)
   if(minute()!=Minute_sign  || reflash_en == 1)//分钟刷新
   {
     u8g2.setFont(u8g2_font_freedoomr25_tn);
-    u8g2.drawStr(60,45,String(minute()/10).c_str());
-    u8g2.drawStr(85,45,String(minute()&10).c_str());
+    u8g2.setDrawColor(0);   // clear the scrolling area
+    u8g2.drawBox(50, 20, 40, 25);
+    u8g2.setDrawColor(1);   // set the color for the text
+    u8g2.drawStr(50,45,String(minute()/10).c_str());
+    u8g2.drawStr(70,45,String(minute()%10).c_str());
     // dig.printfO3660(101,timey,minute()/10);
     // dig.printfO3660(141,timey,minute()%10);
     Minute_sign = minute();
   }
   if(second()!=Second_sign  || reflash_en == 1)//秒钟刷新
   {
-    u8g2.setFont(u8g2_font_VCR_OSD_tu);
-    //u8g2.drawStr(90,40,String(second()).c_str()); 不再显示秒，为日期留空位
+    // u8g2.setFont(u8g2_font_VCR_OSD_tu);
+    // u8g2.drawStr(90,40,String(second()).c_str()); 不再显示秒，为日期留空位
     // dig.printfW1830(182,timey+30,second()/10);
     // dig.printfW1830(202,timey+30,second()%10);
     Second_sign = second();
@@ -1336,8 +1343,8 @@ void digitalClockDisplay(int reflash_en)
   if(reflash_en == 1) reflash_en = 0;
   /***日期****/
   u8g2.setFont(u8g2_font_wqy13_t_gb2312);
-  u8g2.drawStr(90,45,String(week()).c_str());
-  u8g2.drawStr(90,35,String(monthDay()).c_str());
+  u8g2.drawUTF8(92,45,String(week()).c_str());
+  u8g2.drawUTF8(92,30,String(monthDay()).c_str());
   // clk.setColorDepth(8);
   // clk.loadFont(ZdyLwFont_20);
   
