@@ -1,7 +1,7 @@
 <h1 align="center"> Tiny Desktop Indicator </h1>
 
 <p align="center">
-<img src="https://img.shields.io/badge/Version-1.0.1 Beta-red.svg?style=flat-square">
+<img src="https://img.shields.io/badge/Version-1.1.2 Stable-green.svg?style=flat-square">
 <img src="https://img.shields.io/badge/Developer-JimHan-blue.svg?style=flat-square">
 </p>
 
@@ -14,6 +14,7 @@
 ### 📚 目标任务：完成基础功能
 ---
 ### 📤 功能更新
+- 22-03-01 更新v1.1.2版本
 - 22-03-01 更新v1.0.1版本
 ---
 ### 🔧 待解决的问题
