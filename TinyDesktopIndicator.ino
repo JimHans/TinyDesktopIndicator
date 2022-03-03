@@ -15,7 +15,7 @@
  *             
  * 
  * *****************************************************************/
-#define Version  "TDI-OLED V1.1.2"
+#define Version  "TDI-OLED V1.1.4"
 /* *****************************************************************
  *  库文件、头文件
  * *****************************************************************/
@@ -1311,10 +1311,10 @@ void digitalClockDisplay(int reflash_en)
   {
     u8g2.setFont(u8g2_font_freedoomr25_tn);
     u8g2.setDrawColor(0);   // clear the scrolling area
-    u8g2.drawBox(5, 20, 40, 25);
+    u8g2.drawBox(5, 21, 40, 28);
     u8g2.setDrawColor(1);   // set the color for the text
-    u8g2.drawStr(5,45,String(hour()/10).c_str());
-    u8g2.drawStr(25,45,String(hour()%10).c_str());
+    u8g2.drawStr(5,48,String(hour()/10).c_str());
+    u8g2.drawStr(25,48,String(hour()%10).c_str());
     // dig.printfW3660(20,timey,hour()/10);
     // dig.printfW3660(60,timey,hour()%10);
     Hour_sign = hour();
@@ -1323,10 +1323,10 @@ void digitalClockDisplay(int reflash_en)
   {
     u8g2.setFont(u8g2_font_freedoomr25_tn);
     u8g2.setDrawColor(0);   // clear the scrolling area
-    u8g2.drawBox(50, 20, 40, 25);
+    u8g2.drawBox(50, 21, 40, 28);
     u8g2.setDrawColor(1);   // set the color for the text
-    u8g2.drawStr(50,45,String(minute()/10).c_str());
-    u8g2.drawStr(70,45,String(minute()%10).c_str());
+    u8g2.drawStr(50,48,String(minute()/10).c_str());
+    u8g2.drawStr(70,48,String(minute()%10).c_str());
     // dig.printfO3660(101,timey,minute()/10);
     // dig.printfO3660(141,timey,minute()%10);
     Minute_sign = minute();
@@ -1343,8 +1343,8 @@ void digitalClockDisplay(int reflash_en)
   if(reflash_en == 1) reflash_en = 0;
   /***日期****/
   u8g2.setFont(u8g2_font_wqy13_t_gb2312);
-  u8g2.drawUTF8(92,45,String(week()).c_str());
-  u8g2.drawUTF8(92,30,String(monthDay()).c_str());
+  u8g2.drawUTF8(95,45,String(week()).c_str());
+  u8g2.drawUTF8(95,30,String(monthDay()).c_str());
   // clk.setColorDepth(8);
   // clk.loadFont(ZdyLwFont_20);
   
@@ -1382,7 +1382,7 @@ String week()
 String monthDay()
 {
   String s = String(month());
-  s = s + "月" + day() + "日";
+  s = s + "/" + day() + "";
   return s;
 }
 
