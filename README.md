@@ -1,4 +1,5 @@
-<img src="./TDI-Show.png" height=200px style="text-align:center;"></p>
+<p align="center">
+<img src="./TDI-Show.png" height=200px></p>
 <h1 align="center"> Tiny Desktop Indicator </h1>
 
 <p align="center">
