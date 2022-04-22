@@ -1,4 +1,4 @@
-<img src="./TDI-Show.png" height=200px></p>
+<img src="./TDI-Show.png" height=200px style="text-align:center;"></p>
 <h1 align="center"> Tiny Desktop Indicator </h1>
 
 <p align="center">
@@ -27,5 +27,5 @@
 ---
 ### 🔧 待解决的问题
 - [x] 使用u8g2加入更多类型屏幕的自适应UI支持
-- [] 优化显示性能
+- [ ] 优化显示性能
 - [x] 未完全剥离TFT-eSPI库服务
