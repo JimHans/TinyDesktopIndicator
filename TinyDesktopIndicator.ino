@@ -5,9 +5,10 @@
  * 
  * 原  作  者：Misaka & 微车游
  * 修      改：JimHan
- * 最后更改日期：2022.03.01
+ * 最后更改日期：2022.04.22
  * 更 新 日 志：V1.0 修改显示为OLED，删除微信配网，关闭DHT传感器，UI大改以适应0.96'OLED
  *             V1.1 更新了时间字体，优化了排版，更新网页配置面板为SDI新版外观。解决了时间字体重叠问题。
+ *             V1.2 删除了所有TFT-spi依赖项目，加上时间冒号闪动，天气修改为3秒切换，优化web控制台显示，现在可以显示当前设定值。
  * 
  * 引 脚 分 配：
  *              SCL   GPIO14
@@ -15,7 +16,7 @@
  *             
  * 
  * *****************************************************************/
-#define Version  "TDI-OLED V1.1.4"
+#define Version  "TDI-OLED V1.2.1"
 /* *****************************************************************
  *  库文件、头文件
  * *****************************************************************/
@@ -34,8 +35,8 @@
 #include <Wire.h>
 U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);   // All Boards without Reset of the Display
 
-#include "number.h"
-#include "weathernum.h"
+//#include "number.h"
+//#include "weathernum.h"
 
 /* *****************************************************************
  *  配置使能位
@@ -63,7 +64,7 @@ DHT dht(DHTPIN,DHTTYPE);
 /* *****************************************************************
  *  字库、图片库 BANNED
  * *****************************************************************/
- 
+
 //#include "font/ZdyLwFont_20.h"
 //#include "img/misaka.h"
 //#include "img/temperature.h"
@@ -87,7 +88,7 @@ config_type wificonf ={{""},{""}};
 int updateweater_time = 10; //天气更新时间  X 分钟
 int LCD_Rotation = 0;   //LCD屏幕方向
 int LCD_BL_PWM = 50;//屏幕亮度0-100，默认50
-String cityCode = "101250101";  //天气城市代码 长沙:101250101株洲:101250301衡阳:101250401
+String cityCode = "0";  //天气城市代码 默认自动 长沙:101250101株洲:101250301衡阳:101250401
 //----------------------------------------------------
 
 //其余状态标志位
@@ -111,16 +112,16 @@ String SMOD = "";//串口数据存储
 
 
 /*** Component objects ***/
-Number      dig;
-WeatherNum  wrat;
+//Number      dig;
+//WeatherNum  wrat;
 
 
 uint32_t targetTime = 0;
 
 int tempnum = 0;   //温度百分比
 int huminum = 0;   //湿度百分比
-int tempcol =0xffff;   //温度显示颜色
-int humicol =0xffff;   //湿度显示颜色
+// int tempcol =0xffff;   //温度显示颜色
+// int humicol =0xffff;   //湿度显示颜色
 
 //Web网站服务器
 ESP8266WebServer server(80);// 建立esp8266网站服务器对象
@@ -550,22 +551,22 @@ void handleconfig()
   }
 
   //网页界面代码段
-  String content = "<html><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><style>html,body{ background: #2F3840; color: #fff; font-size: 20px; text-align:center;}</style>";
-        content += "<body><form action='/' method='POST'><br><h2>SDI 网络控制台</h2><br>";
-        content += "城市代码:<br><input type='text' name='web_ccode' placeholder='请输入代码，输入0为自动'><br>";
-        content += "<br>屏幕背光亮度(1-100):(默认:50%)<br><input type='text' name='web_bl' placeholder='10'><br>";
-        content += "<br>天气刷新时间:(默认10min)<br><input type='text' name='web_upwe_t' placeholder='10'><br>";
+  String content = "<!DOCTYPE html><html lang=\"zh-CN\"><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /><title>TDI Console</title><style>html,body{ background: #2F3840; color: #fff; font-size: large; text-align:center;width=100%;height=100%}</style>";
+        content += "<body><form action='/' method='POST'><br><h2>TDI 网络控制台</h2><br>";
+        content += "<h3>城市代码，输入0为自动:</h3><br><input type='text' name='web_ccode' placeholder='当前为"+String(EEPROM.read(CC_addr))+"'><br>";
+        content += "<br><h3>屏幕背光亮度(1-100):(默认:50%)</h3><br><input type='text' name='web_bl' placeholder='当前为"+String(EEPROM.read(BL_addr))+"%'><br>";
+        content += "<br><h3>天气刷新时间:(默认10min)</h3><br><input type='text' name='web_upwe_t' placeholder='当前为"+String(EEPROM.read(UpWeT_addr))+"min'><br>";
         #if DHT_EN
         content += "<br>DHT Sensor Enable  <input type='radio' name='web_DHT11_en' value='0'checked> DIS \
                                           <input type='radio' name='web_DHT11_en' value='1'> EN<br>";
         #endif
-        content += "<br>屏幕旋转方向<br>\
+        content += "<br><h3>屏幕旋转方向</h3><br>\
                     <input type='radio' name='web_set_rotation' value='0' checked> USB 向下<br>\
                     <input type='radio' name='web_set_rotation' value='1'> USB 向右<br>\
                     <input type='radio' name='web_set_rotation' value='2'> USB 向上<br>\
                     <input type='radio' name='web_set_rotation' value='3'> USB 向左<br>";
         content += "<br><div><input type='submit' name='保存设置' value='Save'></form></div>" + msg + "<br>";
-        content += "By WCY Modified By JimHan<br>";
+        content += "TDI Console by WCY. Modified By JimHan<br>";
         content += "</body></html>";
   server.send(200, "text/html", content);
 }
@@ -981,8 +982,8 @@ void LCD_reflash(int en) //全屏刷新时钟信息
     prevTime=0;  
   }
   
-  //两秒钟更新一次
-  if(second()%2 ==0&& prevTime == 0 || en == 1){
+  //三秒钟更新一次
+  if(second()%3 ==0&& prevTime == 0 || en == 1){
 #if DHT_EN
     if(DHT_img_flag != 0)
     IndoorTem();
@@ -1148,21 +1149,21 @@ void weaterData(String *cityDZ,String *dataSK,String *dataFC)
   // clk.deleteSprite();
   tempnum = sk["temp"].as<int>();
   tempnum = tempnum+10;
-  if(tempnum<10)
-    tempcol=0x00FF;
-  else if(tempnum<28)
-    tempcol=0x0AFF;
-  else if(tempnum<34)
-    tempcol=0x0F0F;
-  else if(tempnum<41)
-    tempcol=0xFF0F;
-  else if(tempnum<49)
-    tempcol=0xF00F;
-  else
-  {
-    tempcol=0xF00F;
-    tempnum=50;
-  }
+//  if(tempnum<10)
+//    tempcol=0x00FF;
+//  else if(tempnum<28)
+//    tempcol=0x0AFF;
+//  else if(tempnum<34)
+//    tempcol=0x0F0F;
+//  else if(tempnum<41)
+//    tempcol=0xFF0F;
+//  else if(tempnum<49)
+//    tempcol=0xF00F;
+//  else
+//  {
+//    tempcol=0xF00F;
+//    tempnum=50;
+//  }
   //tempWin();
   
   //湿度
@@ -1180,16 +1181,16 @@ void weaterData(String *cityDZ,String *dataSK,String *dataFC)
   //String A = sk["SD"].as<String>();
   huminum = atoi((sk["SD"].as<String>()).substring(0,2).c_str());
   
-  if(huminum>90)
-    humicol=0x00FF;
-  else if(huminum>70)
-    humicol=0x0AFF;
-  else if(huminum>40)
-    humicol=0x0F0F;
-  else if(huminum>20)
-    humicol=0xFF0F;
-  else
-    humicol=0xF00F;
+//  if(huminum>90)
+//    humicol=0x00FF;
+//  else if(huminum>70)
+//    humicol=0x0AFF;
+//  else if(huminum>40)
+//    humicol=0x0F0F;
+//  else if(huminum>20)
+//    humicol=0xFF0F;
+//  else
+//    humicol=0xF00F;
   //humidityWin();
 
   
@@ -1333,8 +1334,14 @@ void digitalClockDisplay(int reflash_en)
   }
   if(second()!=Second_sign  || reflash_en == 1)//秒钟刷新
   {
+    if(second()%2==1)
+    {u8g2.setDrawColor(1);   // set the color for the sec
+    u8g2.drawBox(46, 24, 2, 7);u8g2.drawBox(46, 37, 2, 7);}
+    else
+    {u8g2.setDrawColor(0);   // clear the sec
+    u8g2.drawBox(46, 21, 2, 28);u8g2.setDrawColor(1);}
     // u8g2.setFont(u8g2_font_VCR_OSD_tu);
-    // u8g2.drawStr(90,40,String(second()).c_str()); 不再显示秒，为日期留空位
+    // u8g2.drawStr(90,40,String(second()).c_str()); 不再显示数字秒
     // dig.printfW1830(182,timey+30,second()/10);
     // dig.printfW1830(202,timey+30,second()%10);
     Second_sign = second();
